@@ -1,0 +1,127 @@
+# The package's test gate.
+#
+# Four legs, because no one of them is evidence for what the others cover:
+#
+#   sqlite      the supported Python and Django range, cheaply, with no
+#               optional SDK installed — which is what makes
+#               tests/test_import_purity.py mean something.
+#   extras      the same suite with every optional SDK present, so the paths
+#               that skip when they are absent actually run.
+#   postgres    tests/test_postgres.py, which skips everywhere else. A green
+#               SQLite run is not evidence the column types match.
+#   migrations  the models and the migration graph still agree.
+#
+# Until this workflow existed the Postgres leg was a manual step before every
+# tag, and a manual step before every tag is a step that is eventually skipped.
+
+name: tests
+
+on:
+  push:
+    branches: [dev, main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sqlite:
+    name: py${{ matrix.python }} / Django ${{ matrix.django }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The ends of the supported range, not every point inside it. Django
+        # 4.2 does not support Python 3.13, so that pair is absent rather than
+        # excluded.
+        include:
+          - { python: "3.10", django: "4.2" }
+          - { python: "3.12", django: "4.2" }
+          - { python: "3.10", django: "5.2" }
+          - { python: "3.12", django: "5.2" }
+          - { python: "3.13", django: "5.2" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          # The package first, then the matrix's Django over the top: installing
+          # the package alone resolves to the newest Django its range allows,
+          # and the matrix would test one version five times.
+          pip install .
+          pip install "Django~=${{ matrix.django }}.0"
+      - name: Test
+        run: python -m django test tests --settings=tests.settings -v 2
+
+  extras:
+    name: all extras
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[all]"
+      - name: Test
+        run: python -m django test tests --settings=tests.settings -v 2
+
+  postgres:
+    name: postgres
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install . "psycopg[binary]"
+      - name: Test
+        # PGUSER must be set: tests/settings.py falls back to $USER, which is
+        # `runner` here and is not a role the service has.
+        env:
+          DJANGO_COMMON_UTILS_TEST_DB: postgres
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGHOST: localhost
+          PGPORT: "5432"
+        run: python -m django test tests --settings=tests.settings -v 2
+
+  migrations:
+    name: migration state
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+      - name: Models match migrations
+        run: |
+          python -m django makemigrations common_control --check --dry-run \
+            --settings=tests.settings

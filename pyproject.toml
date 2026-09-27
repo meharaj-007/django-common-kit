@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-common-utils"
+# Single source of truth is django_common_utils.__version__ (read statically by
+# setuptools, so nothing is imported at build time). Two hand-kept copies drift,
+# and here a drift is worse than untidy: consumers pin a git tag, so a tag whose
+# metadata disagrees with the package is a release nobody can identify.
+dynamic = ["version"]
+description = "Shared Django foundation for REST backends: BaseModel, change history, system parameters, request tracking, file attachments and the REST response contract, and encryption of secrets at rest."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Meheraj" }]
+# DRF is a base dependency, not an extra. Every consuming project is a DRF
+# project, and the response envelope, pagination, throttles and permission
+# classes — the reason most of them will install this — are DRF types.
+dependencies = ["Django>=4.2,<6.0", "djangorestframework>=3.14,<4.0"]
+
+[project.urls]
+Repository = "https://github.com/meharaj-007/django-common-utils"
+
+[project.optional-dependencies]
+# S3 media storage. A project on local disk installs neither.
+s3 = ["django-storages>=1.13,<2.0", "boto3>=1.26,<2.0"]
+# Phone normalisation. Without it the validators fall back to E.164 syntax
+# alone, which cannot tell that a valid-looking string is undialable.
+phone = ["phonenumbers>=8.13,<10.0"]
+# Image handling for CommonFileModel thumbnails and the optimise commands.
+images = ["Pillow>=9.0,<13.0"]
+# Geo-IP and user-agent enrichment of ip_tracking rows. Without them the
+# columns stay blank and nothing else changes.
+tracking = ["requests>=2.28,<3.0", "user-agents>=2.2,<3.0"]
+# Hands the tracking writers to a worker. Without it they run inline.
+celery = ["celery>=5.2,<6.0"]
+# Encrypting secrets at rest (django_common_utils.crypto). Without it the package
+# imports, and every encrypt or decrypt raises naming this extra.
+crypto = ["cryptography>=42,<52"]
+all = [
+    "django-storages>=1.13,<2.0",
+    "boto3>=1.26,<2.0",
+    "phonenumbers>=8.13,<10.0",
+    "Pillow>=9.0,<13.0",
+    "requests>=2.28,<3.0",
+    "user-agents>=2.2,<3.0",
+    "celery>=5.2,<6.0",
+    "cryptography>=42,<52",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "django_common_utils.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["django_common_utils*"]
+
+[tool.setuptools.package-data]
+django_common_utils = ["py.typed"]
