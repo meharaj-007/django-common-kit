@@ -56,8 +56,8 @@ Python distribution `django-common-kit`, import package `django_common_kit`, pub
 on PyPI and installable from the matching git tag:
 
 ```
-django-common-kit==0.11.0
-django-common-kit @ git+https://github.com/meharaj-007/django-common-kit.git@v0.11.0
+django-common-kit==0.11.1
+django-common-kit @ git+https://github.com/meharaj-007/django-common-kit.git@v0.11.1
 ```
 
 `django_common_kit/__init__.py:__version__` is the single source of truth;

@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/meharaj-007/django-common-kit/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/meharaj-007/django-common-kit/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/django-common-kit)](https://pypi.org/project/django-common-kit/)
-[![Python](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmeharaj-007%2Fdjango-common-kit%2Fmain%2Fpyproject.toml&query=%24.project%5B%22requires-python%22%5D&label=python)](https://github.com/meharaj-007/django-common-kit/blob/main/pyproject.toml)
+[![Python](https://img.shields.io/pypi/pyversions/django-common-kit)](https://pypi.org/project/django-common-kit/)
 
 The foundation a Django REST backend starts from: a UUID `BaseModel`, a
 change-history trail, typed system parameters with a cache, request and IP
@@ -20,13 +20,13 @@ Every project installs it, configures it and uses it the same way.
 From PyPI:
 
 ```bash
-pip install "django-common-kit==0.11.0"
+pip install "django-common-kit==0.11.1"
 ```
 
 Or pinned to a git tag, which is the same release:
 
 ```
-django-common-kit @ git+https://github.com/meharaj-007/django-common-kit.git@v0.11.0
+django-common-kit @ git+https://github.com/meharaj-007/django-common-kit.git@v0.11.1
 ```
 
 Extras, all optional. The package imports and works with none of them; each

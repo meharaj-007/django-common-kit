@@ -8,6 +8,13 @@ or the README's install pins, drift from it.
 
 Nothing yet.
 
+## [0.11.1] - 2026-09-27
+
+### Added
+
+- PyPI classifiers: Python 3.10 to 3.13, Django 4.2 to 5.2, and `Typing ::
+  Typed`. Packaging metadata only; no code changes.
+
 ## [0.11.0] - 2026-09-27
 
 ### Changed

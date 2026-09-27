@@ -12,7 +12,7 @@ an email template — all project, however much they currently sit in ``common/`
 See PRD.md §2 for the boundary in full.
 """
 
-__version__ = "0.11.0"
+__version__ = "0.11.1"
 
 default_app_config = "django_common_kit.apps.CommonKitConfig"
 
