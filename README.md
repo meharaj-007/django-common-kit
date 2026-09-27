@@ -3,6 +3,7 @@
 [![tests](https://github.com/meharaj-007/django-common-kit/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/meharaj-007/django-common-kit/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/django-common-kit)](https://pypi.org/project/django-common-kit/)
 [![Python](https://img.shields.io/pypi/pyversions/django-common-kit)](https://pypi.org/project/django-common-kit/)
+[![License](https://img.shields.io/pypi/l/django-common-kit)](https://github.com/meharaj-007/django-common-kit/blob/main/LICENSE)
 
 The foundation a Django REST backend starts from: a UUID `BaseModel`, a
 change-history trail, typed system parameters with a cache, request and IP
