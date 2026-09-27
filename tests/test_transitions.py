@@ -6,8 +6,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.test import RequestFactory, TestCase, override_settings
 
-from django_common_utils.request_context import set_current_request
-from django_common_utils.transitions import get_status_transitions, track_status_transition
+from django_common_kit.request_context import set_current_request
+from django_common_kit.transitions import get_status_transitions, track_status_transition
 from tests.testapp.models import Widget
 
 User = get_user_model()
@@ -60,7 +60,7 @@ class TrackStatusTransitionTests(TestCase):
         with self.assertRaises(ValueError):
             track_status_transition(self.widget, "live", "", previous_status="draft")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TENANT": {"INSTANCE_ATTRIBUTE": "parent_id"}})
+    @override_settings(DJANGO_COMMON_KIT={"TENANT": {"INSTANCE_ATTRIBUTE": "parent_id"}})
     def test_the_tenant_is_the_instances(self):
         parent = Widget.objects.create(name="shelf")
         child = Widget.objects.create(name="draft", parent=parent)

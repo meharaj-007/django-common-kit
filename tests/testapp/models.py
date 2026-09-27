@@ -2,8 +2,8 @@
 
 from django.db import models
 
-from django_common_utils.crypto import EncryptedTextField
-from django_common_utils.models import BaseModel
+from django_common_kit.crypto import EncryptedTextField
+from django_common_kit.models import BaseModel
 
 
 class Widget(BaseModel):

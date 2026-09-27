@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
-from django_common_utils.api.response import ApiResponse
+from django_common_kit.api.response import ApiResponse
 
 
 class SampleSerializer(serializers.Serializer):

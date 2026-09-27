@@ -10,10 +10,10 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from django_common_utils.models import ModelHistory, PlatformNoticeDismissalModel, PlatformNoticeModel
-from django_common_utils.notices import dismiss, live_notices
-from django_common_utils.notices.service import invalidate_cache
-from django_common_utils.request_context import set_current_request
+from django_common_kit.models import ModelHistory, PlatformNoticeDismissalModel, PlatformNoticeModel
+from django_common_kit.notices import dismiss, live_notices
+from django_common_kit.notices.service import invalidate_cache
+from django_common_kit.request_context import set_current_request
 
 User = get_user_model()
 TENANT = uuid.uuid4()
@@ -91,7 +91,7 @@ class TenantTests(NoticeTestCase):
         self.notice("one tenant", tenant_id=TENANT)
         self.assertEqual(self.titles(self.request(tenant=TENANT)), ["everyone"])
 
-    @override_settings(DJANGO_COMMON_UTILS=TENANCY)
+    @override_settings(DJANGO_COMMON_KIT=TENANCY)
     def test_a_tenant_sees_its_own_and_everyones(self):
         self.notice("everyone")
         self.notice("mine", tenant_id=TENANT)
@@ -99,7 +99,7 @@ class TenantTests(NoticeTestCase):
         self.assertEqual(sorted(self.titles(self.request(tenant=TENANT))), ["everyone", "mine"])
         self.assertEqual(self.titles(self.request()), ["everyone"])
 
-    @override_settings(DJANGO_COMMON_UTILS=TENANCY)
+    @override_settings(DJANGO_COMMON_KIT=TENANCY)
     def test_a_notice_is_never_scoped_to_the_tenant_of_whoever_posted_it(self):
         set_current_request(self.request(tenant=TENANT))
         self.addCleanup(set_current_request, None)
@@ -112,7 +112,7 @@ class AudienceTests(NoticeTestCase):
         self.notice("admins only", audience="admins")
         self.assertEqual(self.titles(self.request(audiences=["admins"])), ["everyone"])
 
-    @override_settings(DJANGO_COMMON_UTILS=AUDIENCES)
+    @override_settings(DJANGO_COMMON_KIT=AUDIENCES)
     def test_the_resolver_decides_the_viewers_audiences(self):
         self.notice("everyone")
         self.notice("admins only", audience="admins")
@@ -121,11 +121,11 @@ class AudienceTests(NoticeTestCase):
             sorted(self.titles(self.request(audiences=["admins"]))), ["admins only", "everyone"],
         )
 
-    @override_settings(DJANGO_COMMON_UTILS={"NOTICES": {"AUDIENCE_RESOLVER": broken_resolver}})
+    @override_settings(DJANGO_COMMON_KIT={"NOTICES": {"AUDIENCE_RESOLVER": broken_resolver}})
     def test_a_failing_resolver_falls_back_to_notices_for_everyone(self):
         self.notice("everyone")
         self.notice("admins only", audience="admins")
-        with self.assertLogs("django_common_utils.notices.service", "WARNING"):
+        with self.assertLogs("django_common_kit.notices.service", "WARNING"):
             self.assertEqual(self.titles(self.request()), ["everyone"])
 
     def test_a_blank_audience_or_surface_means_every(self):
@@ -194,7 +194,7 @@ class CacheTests(NoticeTestCase):
         notice.delete()
         self.assertEqual(self.titles(self.request()), [])
 
-    @override_settings(DJANGO_COMMON_UTILS={"NOTICES": {"CACHE_TTL_SECONDS": 0}})
+    @override_settings(DJANGO_COMMON_KIT={"NOTICES": {"CACHE_TTL_SECONDS": 0}})
     def test_ttl_zero_reads_the_database_every_time(self):
         self.notice()
         self.titles(self.request())
@@ -224,7 +224,7 @@ class DismissalTests(NoticeTestCase):
         with self.assertRaises(ValueError):
             dismiss(self.notice(is_dismissible=False), self.ana)
 
-    @override_settings(DJANGO_COMMON_UTILS=TENANCY)
+    @override_settings(DJANGO_COMMON_KIT=TENANCY)
     def test_a_dismissal_belongs_to_its_notices_tenant(self):
         set_current_request(self.request(tenant=OTHER_TENANT))
         self.addCleanup(set_current_request, None)

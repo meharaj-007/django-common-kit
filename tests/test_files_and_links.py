@@ -6,8 +6,8 @@ from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from django_common_utils.models import CommonFileModel, ShortLinkModel
-from django_common_utils.shortlinks import shorten
+from django_common_kit.models import CommonFileModel, ShortLinkModel
+from django_common_kit.shortlinks import shorten
 
 MEDIA = tempfile.mkdtemp()
 
@@ -23,7 +23,7 @@ class CommonFileTests(TestCase):
         row = self._make()
         self.assertRegex(row.file.name, r"^common/files/doc/\d{4}/\d{2}/a(_\w+)?\.txt$")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TENANT": {"INSTANCE_ATTRIBUTE": "parent_id"}})
+    @override_settings(DJANGO_COMMON_KIT={"TENANT": {"INSTANCE_ATTRIBUTE": "parent_id"}})
     def test_with_tenants_the_path_starts_with_the_tenant(self):
         from django.contrib.contenttypes.models import ContentType
 
@@ -38,7 +38,7 @@ class CommonFileTests(TestCase):
         self.assertTrue(row.file.name.startswith(f"{parent.pk}/common/files/doc/"), row.file.name)
         self.assertEqual(row.tenant_id, parent.pk)
 
-    @override_settings(DJANGO_COMMON_UTILS={"TENANT": {"INSTANCE_ATTRIBUTE": "parent_id"}})
+    @override_settings(DJANGO_COMMON_KIT={"TENANT": {"INSTANCE_ATTRIBUTE": "parent_id"}})
     def test_with_tenants_a_file_with_none_goes_to_system(self):
         self.assertTrue(self._make().file.name.startswith("system/common/files/doc/"))
 
@@ -63,7 +63,7 @@ class CommonFileTests(TestCase):
             self.assertFalse(storage.exists(name))
 
 
-@override_settings(DJANGO_COMMON_UTILS={"SHORT_LINK": {"BASE_URL": "https://sms.example"}})
+@override_settings(DJANGO_COMMON_KIT={"SHORT_LINK": {"BASE_URL": "https://sms.example"}})
 class ShortLinkTests(TestCase):
     def test_shorten_returns_a_short_url_and_reuses_it(self):
         first = shorten("https://long.example/quote/abc?sig=1", purpose="quote")
@@ -71,7 +71,7 @@ class ShortLinkTests(TestCase):
         self.assertEqual(shorten("https://long.example/quote/abc?sig=1", purpose="quote"), first)
         self.assertEqual(ShortLinkModel.objects.count(), 1)
 
-    @override_settings(DJANGO_COMMON_UTILS={"SHORT_LINK": {"BASE_URL": ""}})
+    @override_settings(DJANGO_COMMON_KIT={"SHORT_LINK": {"BASE_URL": ""}})
     def test_without_a_base_url_the_long_url_is_returned(self):
         target = "https://long.example/x"
         self.assertEqual(shorten(target), target)
@@ -100,28 +100,28 @@ class UploadLimitTests(TestCase):
 
         return SimpleUploadedFile(name, b"x" * size, content_type=content_type)
 
-    @override_settings(DJANGO_COMMON_UTILS={"FILES": {"MAX_UPLOAD_BYTES": 5}})
+    @override_settings(DJANGO_COMMON_KIT={"FILES": {"MAX_UPLOAD_BYTES": 5}})
     def test_a_file_over_the_limit_is_refused(self):
         from django.core.exceptions import ValidationError
 
-        from django_common_utils.files import validate_upload
+        from django_common_kit.files import validate_upload
 
         with self.assertRaises(ValidationError) as caught:
             validate_upload(self._upload(size=6))
         self.assertEqual(caught.exception.code, "file_too_large")
         validate_upload(self._upload(size=5))
 
-    @override_settings(DJANGO_COMMON_UTILS={"FILES": {"MAX_UPLOAD_BYTES": 0}})
+    @override_settings(DJANGO_COMMON_KIT={"FILES": {"MAX_UPLOAD_BYTES": 0}})
     def test_no_limit_when_the_limit_is_zero(self):
-        from django_common_utils.files import validate_upload
+        from django_common_kit.files import validate_upload
 
         validate_upload(self._upload(size=10_000))
 
-    @override_settings(DJANGO_COMMON_UTILS={"FILES": {"ALLOWED_MIME_TYPES": ["application/pdf", "image/*"]}})
+    @override_settings(DJANGO_COMMON_KIT={"FILES": {"ALLOWED_MIME_TYPES": ["application/pdf", "image/*"]}})
     def test_only_listed_types_are_accepted(self):
         from django.core.exceptions import ValidationError
 
-        from django_common_utils.files import validate_upload
+        from django_common_kit.files import validate_upload
 
         validate_upload(self._upload())
         validate_upload(self._upload("p.png", content_type="image/png"))
@@ -129,16 +129,16 @@ class UploadLimitTests(TestCase):
             validate_upload(self._upload("x.exe", content_type="application/x-msdownload"))
         self.assertEqual(caught.exception.code, "file_type_not_allowed")
 
-    @override_settings(DJANGO_COMMON_UTILS={"FILES": {"ALLOWED_MIME_TYPES": ["application/pdf"]}})
+    @override_settings(DJANGO_COMMON_KIT={"FILES": {"ALLOWED_MIME_TYPES": ["application/pdf"]}})
     def test_without_a_declared_type_the_name_decides(self):
         from django.core.files.base import ContentFile
 
-        from django_common_utils.files import upload_mime_type, validate_upload
+        from django_common_kit.files import upload_mime_type, validate_upload
 
         self.assertEqual(upload_mime_type(ContentFile(b"x", name="a.pdf")), "application/pdf")
         validate_upload(ContentFile(b"x", name="a.pdf"))
 
-    @override_settings(MEDIA_ROOT=MEDIA, DJANGO_COMMON_UTILS={"FILES": {"MAX_UPLOAD_BYTES": 5}})
+    @override_settings(MEDIA_ROOT=MEDIA, DJANGO_COMMON_KIT={"FILES": {"MAX_UPLOAD_BYTES": 5}})
     def test_the_model_checks_a_new_upload_on_clean(self):
         from django.core.exceptions import ValidationError
 
@@ -153,6 +153,6 @@ class UploadLimitTests(TestCase):
         row = CommonFileModel(tag="doc")
         row.file.save("a.txt", ContentFile(b"hello world"), save=True)
         row = CommonFileModel.objects.get(pk=row.pk)
-        with override_settings(MEDIA_ROOT=MEDIA, DJANGO_COMMON_UTILS={"FILES": {"MAX_UPLOAD_BYTES": 5}}):
+        with override_settings(MEDIA_ROOT=MEDIA, DJANGO_COMMON_KIT={"FILES": {"MAX_UPLOAD_BYTES": 5}}):
             row.title = "renamed"
             row.full_clean()

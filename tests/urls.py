@@ -1,7 +1,7 @@
 from django.urls import path
 
-from django_common_utils.notices.views import LiveNoticeListView, NoticeDismissView
-from django_common_utils.shortlinks.views import short_link_redirect
+from django_common_kit.notices.views import LiveNoticeListView, NoticeDismissView
+from django_common_kit.shortlinks.views import short_link_redirect
 from tests.views import BoomView, ThrottledView, ValidatedView
 
 urlpatterns = [

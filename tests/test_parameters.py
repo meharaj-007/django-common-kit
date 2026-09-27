@@ -7,8 +7,8 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 
-from django_common_utils.models import ParameterModel
-from django_common_utils.parameters import ParameterCache, get_parameter
+from django_common_kit.models import ParameterModel
+from django_common_kit.parameters import ParameterCache, get_parameter
 
 
 def seed():
@@ -83,7 +83,7 @@ class SeedCommandTests(TestCase):
         with self.assertRaises(CommandError):
             call_command("seed_parameters")
 
-    @override_settings(DJANGO_COMMON_UTILS={"PARAMETERS": {"SEED_CATALOG": "tests.test_parameters.seed"}})
+    @override_settings(DJANGO_COMMON_KIT={"PARAMETERS": {"SEED_CATALOG": "tests.test_parameters.seed"}})
     def test_creates_then_leaves_existing_rows_alone(self):
         out = StringIO()
         call_command("seed_parameters", stdout=out)

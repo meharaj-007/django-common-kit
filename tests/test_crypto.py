@@ -21,8 +21,8 @@ from django.forms import modelform_factory
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from rest_framework import serializers
 
-from django_common_utils.admin import BaseModelAdmin
-from django_common_utils.crypto import (
+from django_common_kit.admin import BaseModelAdmin
+from django_common_kit.crypto import (
     DecryptionError,
     EncryptedTextField,
     EncryptionNotConfigured,
@@ -34,10 +34,10 @@ from django_common_utils.crypto import (
     mask,
     rotate_token,
 )
-from django_common_utils.crypto.checks import check_encryption
-from django_common_utils.history import get_model_history
-from django_common_utils.models import RequestLog
-from django_common_utils.tracking.redaction import redact_text
+from django_common_kit.crypto.checks import check_encryption
+from django_common_kit.history import get_model_history
+from django_common_kit.models import RequestLog
+from django_common_kit.tracking.redaction import redact_text
 from tests.testapp.models import Vault
 
 HAS_CRYPTOGRAPHY = importlib.util.find_spec("cryptography") is not None
@@ -50,7 +50,7 @@ KEY_C = "QYOQ-FuBOv7SmPxHng_-GCKDRK5PQu1Yeq6Wol0x-6E="
 
 
 def keys(*values):
-    return override_settings(DJANGO_COMMON_UTILS={
+    return override_settings(DJANGO_COMMON_KIT={
         "PARAMETERS": {"AUTO_LOAD_ON_STARTUP": False},
         "ENCRYPTION": {"KEYS": list(values)},
     })
@@ -89,7 +89,7 @@ class ConfigurationTests(SimpleTestCase):
     @keys()
     def test_no_keys_is_not_configured(self):
         self.assertFalse(is_configured())
-        with self.assertRaisesMessage(EncryptionNotConfigured, 'DJANGO_COMMON_UTILS["ENCRYPTION"]["KEYS"]'):
+        with self.assertRaisesMessage(EncryptionNotConfigured, 'DJANGO_COMMON_KIT["ENCRYPTION"]["KEYS"]'):
             encrypt("x")
 
     @keys("not-a-key")
@@ -108,10 +108,10 @@ class ConfigurationTests(SimpleTestCase):
 
     def test_without_cryptography_every_function_says_which_extra(self):
         with mock.patch.dict("sys.modules", {"cryptography": None, "cryptography.fernet": None}):
-            from django_common_utils.crypto import keys as module
+            from django_common_kit.crypto import keys as module
 
             module._cache.clear()
-            with self.assertRaisesMessage(EncryptionNotConfigured, "django-common-utils[crypto]"):
+            with self.assertRaisesMessage(EncryptionNotConfigured, "django-common-kit[crypto]"):
                 encrypt("x")
             self.assertFalse(is_configured())
         module._cache.clear()
@@ -125,7 +125,7 @@ class ConfigurationTests(SimpleTestCase):
         code = (
             "import sys; sys.modules['cryptography'] = None; "
             "import django; from django.conf import settings; settings.configure(); "
-            "import django_common_utils.crypto as c; "
+            "import django_common_kit.crypto as c; "
             "assert c.EncryptedTextField and c.encrypt and c.mask('abcdefghijkl') == '••••ijkl'"
         )
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
@@ -148,7 +148,7 @@ class FunctionTests(SimpleTestCase):
     def test_a_single_string_is_a_list_of_one(self):
         with keys(KEY_A):
             token = encrypt("x")
-        with override_settings(DJANGO_COMMON_UTILS={"ENCRYPTION": {"KEYS": KEY_A}}):
+        with override_settings(DJANGO_COMMON_KIT={"ENCRYPTION": {"KEYS": KEY_A}}):
             self.assertEqual(decrypt(token), "x")
 
     def test_a_token_no_key_opens_raises_without_the_token_in_the_message(self):
@@ -256,7 +256,7 @@ class FieldTests(TestCase):
     def test_loading_never_decrypts(self):
         with keys(KEY_B):
             vault = Vault.objects.create(secret="made-with-another-key")
-        with mock.patch("django_common_utils.crypto.fields.decrypt") as spy:
+        with mock.patch("django_common_kit.crypto.fields.decrypt") as spy:
             list(Vault.objects.all())
             Vault.objects.get(pk=vault.pk)
             Vault.objects.values_list("secret", flat=True).get(pk=vault.pk)
@@ -293,7 +293,7 @@ class FieldTests(TestCase):
 
     def test_deconstructs_with_the_public_path(self):
         _name, path, _args, kwargs = Vault._meta.get_field("legacy").deconstruct()
-        self.assertEqual(path, "django_common_utils.crypto.EncryptedTextField")
+        self.assertEqual(path, "django_common_kit.crypto.EncryptedTextField")
         self.assertTrue(kwargs["legacy_plaintext"])
         self.assertNotIn("legacy_plaintext", Vault._meta.get_field("secret").deconstruct()[3])
 
@@ -324,10 +324,10 @@ class LegacyPlaintextTests(TestCase):
         Vault.objects.filter(pk=self.vault.pk).update(legacy=_raw("plain-old-secret"))
 
     def test_plaintext_reads_back_as_is_and_is_logged_once(self):
-        from django_common_utils.crypto import fields
+        from django_common_kit.crypto import fields
 
         fields._legacy_logged.clear()
-        with self.assertLogs("django_common_utils.crypto.fields", "WARNING") as logs:
+        with self.assertLogs("django_common_kit.crypto.fields", "WARNING") as logs:
             self.assertEqual(Vault.objects.get(pk=self.vault.pk).legacy, "plain-old-secret")
             self.assertEqual(Vault.objects.get(pk=self.vault.pk).legacy, "plain-old-secret")
         self.assertEqual(len(logs.output), 1)
@@ -346,7 +346,7 @@ class LegacyPlaintextTests(TestCase):
 
 def _raw(value):
     """A value written to the column as-is, as the rotation command does."""
-    from django_common_utils.crypto.fields import StoredToken
+    from django_common_kit.crypto.fields import StoredToken
 
     return StoredToken(value)
 
@@ -390,7 +390,7 @@ class HistoryTests(TestCase):
         vault.save()
         self.assertEqual(get_model_history(vault).count(), 1)
 
-    @override_settings(DJANGO_COMMON_UTILS={
+    @override_settings(DJANGO_COMMON_KIT={
         "PARAMETERS": {"AUTO_LOAD_ON_STARTUP": False},
         "ENCRYPTION": {"KEYS": [KEY_A]},
         "HISTORY": {"EXCLUDE_FIELDS": []},
@@ -497,12 +497,12 @@ class RedactionTests(SimpleTestCase):
             self.assertEqual(redacted[key], "***REDACTED***")
 
 
-@override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"GEO_LOOKUP_URL": ""}})
+@override_settings(DJANGO_COMMON_KIT={"TRACKING": {"GEO_LOOKUP_URL": ""}})
 class RequestLogTests(TestCase):
     def test_a_logged_post_that_sets_auth_token_is_redacted(self):
         from django.http import HttpResponse
 
-        from django_common_utils.tracking.middleware import RequestLogMiddleware
+        from django_common_kit.tracking.middleware import RequestLogMiddleware
 
         request = RequestFactory().post(
             "/api/provider-accounts/",
@@ -532,7 +532,7 @@ class SystemCheckTests(SimpleTestCase):
         self.assertNotIn("nope", messages[0].msg)
 
     def test_e003_cryptography_missing(self):
-        with mock.patch("django_common_utils.crypto.checks.cryptography_installed", return_value=False):
+        with mock.patch("django_common_kit.crypto.checks.cryptography_installed", return_value=False):
             self.assertIn("common_control.E003", self.ids())
 
     @keys(KEY_A, KEY_B, KEY_A)
@@ -548,7 +548,7 @@ class SystemCheckTests(SimpleTestCase):
 
     @keys()
     def test_silent_with_no_field_and_no_keys(self):
-        with mock.patch("django_common_utils.crypto.checks._models_with_encrypted_fields", return_value=[]):
+        with mock.patch("django_common_kit.crypto.checks._models_with_encrypted_fields", return_value=[]):
             self.assertEqual(self.ids(), [])
 
     def test_registered(self):

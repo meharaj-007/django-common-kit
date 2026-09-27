@@ -3,8 +3,8 @@
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, override_settings
 
-from django_common_utils.middleware import CurrentRequestMiddleware
-from django_common_utils.request_context import get_current_request
+from django_common_kit.middleware import CurrentRequestMiddleware
+from django_common_kit.request_context import get_current_request
 
 
 class CurrentRequestMiddlewareTests(SimpleTestCase):
@@ -53,7 +53,7 @@ class ClientIPTests(SimpleTestCase):
     """``get_client_ip`` (PRD §8): how far ``X-Forwarded-For`` is believed."""
 
     def ip(self, remote="10.0.0.5", forwarded=None):
-        from django_common_utils.request_context import get_client_ip
+        from django_common_kit.request_context import get_client_ip
 
         headers = {"REMOTE_ADDR": remote}
         if forwarded is not None:
@@ -63,21 +63,21 @@ class ClientIPTests(SimpleTestCase):
     def test_by_default_the_header_is_ignored(self):
         self.assertEqual(self.ip(forwarded="203.0.113.9"), "10.0.0.5")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"TRUSTED_PROXY_COUNT": 1}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"TRUSTED_PROXY_COUNT": 1}})
     def test_the_hop_the_proxy_appended_is_taken_not_the_clients(self):
         self.assertEqual(self.ip(forwarded="6.6.6.6, 203.0.113.9"), "203.0.113.9")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"TRUSTED_PROXY_COUNT": 1}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"TRUSTED_PROXY_COUNT": 1}})
     def test_a_forwarded_entry_that_is_not_an_ip_falls_back_to_the_peer(self):
         for forwarded in ("unknown", "203.0.113.9:4431", "<script>", "1.2.3"):
             with self.subTest(forwarded=forwarded):
                 self.assertEqual(self.ip(forwarded=forwarded), "10.0.0.5")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"TRUSTED_PROXY_COUNT": 1}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"TRUSTED_PROXY_COUNT": 1}})
     def test_ipv6_is_an_ip(self):
         self.assertEqual(self.ip(forwarded="2001:db8::1"), "2001:db8::1")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {
         "TRUSTED_PROXY_COUNT": 1, "TRUSTED_PROXY_IPS": ["10.0.0.0/8", "192.0.2.7"],
     }})
     def test_with_proxy_ips_only_a_named_proxy_may_speak_for_the_client(self):
@@ -86,19 +86,19 @@ class ClientIPTests(SimpleTestCase):
         # Straight to the app, bypassing the proxy: the header is the client's own.
         self.assertEqual(self.ip(remote="198.51.100.4", forwarded="203.0.113.9"), "198.51.100.4")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {
         "TRUSTED_PROXY_COUNT": 1, "TRUSTED_PROXY_IPS": ["10.0.0.0/8"],
     }})
     def test_an_ipv4_proxy_seen_through_a_dual_stack_socket_is_still_the_proxy(self):
         self.assertEqual(self.ip(remote="::ffff:10.1.2.3", forwarded="203.0.113.9"), "203.0.113.9")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {
         "TRUSTED_PROXY_COUNT": 1, "TRUSTED_PROXY_IPS": ["not-a-network", "10.0.0.0/8"],
     }})
     def test_a_bad_proxy_entry_is_skipped_not_trusted(self):
-        with self.assertLogs("django_common_utils.request_context", "WARNING"):
+        with self.assertLogs("django_common_kit.request_context", "WARNING"):
             self.assertEqual(self.ip(remote="10.1.2.3", forwarded="203.0.113.9"), "203.0.113.9")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"TRUSTED_PROXY_IPS": ["10.0.0.0/8"]}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"TRUSTED_PROXY_IPS": ["10.0.0.0/8"]}})
     def test_proxy_ips_without_a_count_still_ignore_the_header(self):
         self.assertEqual(self.ip(remote="10.1.2.3", forwarded="203.0.113.9"), "10.1.2.3")

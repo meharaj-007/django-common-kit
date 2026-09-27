@@ -16,7 +16,7 @@ from django.db.migrations.recorder import MigrationRecorder
 from django.test import TransactionTestCase
 from django.utils import timezone
 
-from django_common_utils.management.commands.adopt_tables import Command
+from django_common_kit.management.commands.adopt_tables import Command
 
 from .test_migrations import LATE_COLUMNS, _columns, _package_migrations
 

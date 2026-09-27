@@ -12,13 +12,13 @@ from django.test import TestCase, override_settings
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
-from django_common_utils.api.pagination import (
+from django_common_kit.api.pagination import (
     CustomCursorSetPagination,
     CustomPageNumberPagination,
 )
 from tests.testapp.models import Widget
 
-PAGINATION = {"DJANGO_COMMON_UTILS": {
+PAGINATION = {"DJANGO_COMMON_KIT": {
     "PARAMETERS": {"AUTO_LOAD_ON_STARTUP": False},
     "PAGINATION": {"PAGE_SIZE": 10, "ALLOWED_PAGE_SIZES": [5, 10, 20]},
 }}
@@ -59,8 +59,8 @@ class PaginationCases:
         self.assert_page_size(10, page_size="all")
 
     def test_default_is_read_at_call_time(self):
-        with override_settings(DJANGO_COMMON_UTILS={
-            **PAGINATION["DJANGO_COMMON_UTILS"],
+        with override_settings(DJANGO_COMMON_KIT={
+            **PAGINATION["DJANGO_COMMON_KIT"],
             "PAGINATION": {"PAGE_SIZE": 5, "ALLOWED_PAGE_SIZES": [5, 10, 20]},
         }):
             self.assert_page_size(5)

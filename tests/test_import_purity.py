@@ -1,4 +1,4 @@
-"""Nothing under ``django_common_utils/`` may import a host project module (PRD §2).
+"""Nothing under ``django_common_kit/`` may import a host project module (PRD §2).
 
 The failure this prevents is not a crash — it is worse than that. An
 ``import base.settings`` works perfectly in the project the code was written
@@ -12,7 +12,7 @@ import os
 import unittest
 
 PACKAGE_ROOT = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "django_common_utils"
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "django_common_kit"
 )
 
 #: Top-level package names that belong to a consuming project, never to this one.

@@ -1,4 +1,4 @@
-# django-common-utils — Product Requirements
+# django-common-kit — Product Requirements
 
 Status: specification. The code cites these section numbers (`§6`, `§9.3`); read
 the section a module names before changing that module.
@@ -44,7 +44,7 @@ arrives through a dotted-path hook in settings, resolved at first use
 parameter seed catalogue (§7), permission classes (§5.2), the authored-exception
 package list (§5.1).
 
-**Nothing under `django_common_utils/` may import a host project module.** Enforced by
+**Nothing under `django_common_kit/` may import a host project module.** Enforced by
 `tests/test_import_purity.py`. The one permitted indirection is
 `settings.AUTH_USER_MODEL`.
 
@@ -52,14 +52,15 @@ package list (§5.1).
 
 ### §3.1 Packaging
 
-Python distribution `django-common-utils`, import package `django_common_utils`, installed
-from a git tag:
+Python distribution `django-common-kit`, import package `django_common_kit`, published
+on PyPI and installable from the matching git tag:
 
 ```
-django-common-utils @ git+https://github.com/meharaj-007/django-common-utils.git@v0.10.0
+django-common-kit==0.11.0
+django-common-kit @ git+https://github.com/meharaj-007/django-common-kit.git@v0.11.0
 ```
 
-`django_common_utils/__init__.py:__version__` is the single source of truth;
+`django_common_kit/__init__.py:__version__` is the single source of truth;
 `pyproject.toml` reads it dynamically. Optional extras: `s3`, `phone`, `images`,
 `tracking`, `celery`, `crypto` (`v0.10.0`, §17), `all`. The package imports cleanly with none of them
 installed; each degrades in a documented way.
@@ -73,10 +74,10 @@ migrations, and two apps cannot share one.
 ### §3.3 Layout
 
 ```
-django_common_utils/
+django_common_kit/
   __init__.py          __version__, lazy exports
   apps.py              AppConfig, label = "common_control"
-  conf.py              the DJANGO_COMMON_UTILS dict (§4)
+  conf.py              the DJANGO_COMMON_KIT dict (§4)
   models.py            BaseModel and every concrete table
   history.py           HistoryMixin, the diff engine (§6)
   transitions.py       track_status_transition (§6.4)
@@ -153,7 +154,7 @@ tables, not on `BaseModel`: a project's own tables keep their own tenant column.
 
 ## §4 Settings
 
-One `DJANGO_COMMON_UTILS` dict, and only that. Every knob is a key in it; every
+One `DJANGO_COMMON_KIT` dict, and only that. Every knob is a key in it; every
 project configures it the same way; there is no second place a value can come
 from. Settings the package does not own — `AUTH_USER_MODEL`, `MEDIA_ROOT`,
 `AWS_BUCKET_NAME`, `DEBUG` — are read from Django directly.
@@ -162,7 +163,7 @@ Two rules:
 
 1. **Nothing is read at import time.** Every lookup goes through
    `app_settings.get(...)` so `override_settings` is honoured. A module-level
-   `PAGE_SIZE = settings.DJANGO_COMMON_UTILS[...]` freezes the value at first import
+   `PAGE_SIZE = settings.DJANGO_COMMON_KIT[...]` freezes the value at first import
    and makes every override in a test suite a lie.
 2. **Every key has a default**, and the default is what a project that
    configures nothing gets. `conf.py` holds the full tree and the reasoning
@@ -566,7 +567,7 @@ Not in:
 ### §17.3 Settings
 
 ```python
-DJANGO_COMMON_UTILS = {
+DJANGO_COMMON_KIT = {
     "ENCRYPTION": {
         # Fernet keys, newest first. The first encrypts; every key decrypts.
         # A single string is accepted and treated as a one-item list.
@@ -585,10 +586,10 @@ DJANGO_COMMON_UTILS = {
   cached per process, keyed on the key list itself, so `override_settings` works
   in tests and a changed key list builds a new one without a signal.
 
-### §17.4 Functions — `django_common_utils.crypto`
+### §17.4 Functions — `django_common_kit.crypto`
 
 ```python
-from django_common_utils.crypto import encrypt, decrypt, mask, is_configured, rotate_token
+from django_common_kit.crypto import encrypt, decrypt, mask, is_configured, rotate_token
 
 token = encrypt("sk_live_…")        # str -> Fernet token (str)
 plain = decrypt(token)              # tries every key in KEYS
@@ -599,10 +600,10 @@ rotate_token(token)                 # re-encrypted with the first key
 
 - `encrypt("")` and `encrypt(None)` return the input unchanged: an empty secret
   is "not set", and the column must still answer `isnull` / empty checks.
-- Errors, both importable from `django_common_utils.crypto`:
+- Errors, both importable from `django_common_kit.crypto`:
   - `EncryptionNotConfigured` (a subclass of `ImproperlyConfigured`) — no keys,
     or a key that is not a Fernet key. Raised by `encrypt` and `decrypt`, with a
-    message naming `DJANGO_COMMON_UTILS["ENCRYPTION"]["KEYS"]` and how to generate a
+    message naming `DJANGO_COMMON_KIT["ENCRYPTION"]["KEYS"]` and how to generate a
     key.
   - `DecryptionError` — no configured key opens the token (wrong key, dropped
     key, corrupted value). The message never contains the token.
@@ -612,14 +613,14 @@ rotate_token(token)                 # re-encrypted with the first key
   raises.
 - `cryptography` is imported inside the functions, so the package still imports
   without the extra (§3.1, `tests/test_import_purity.py`). Calling a function
-  without it raises `EncryptionNotConfigured` naming `django-common-utils[crypto]`.
+  without it raises `EncryptionNotConfigured` naming `django-common-kit[crypto]`.
 - Tokens are plain Fernet tokens with no prefix, so a column written by any of
   the twelve copies in §17.1 reads back unchanged once its key is in `KEYS`.
 
 ### §17.5 The model field — `EncryptedTextField`
 
 ```python
-from django_common_utils.crypto import EncryptedTextField
+from django_common_kit.crypto import EncryptedTextField
 
 class ProviderAccountModel(BaseModel):
     secret = EncryptedTextField(blank=True)
@@ -647,7 +648,7 @@ class ProviderAccountModel(BaseModel):
   the adoption path for a column that held plaintext. `rotate_encrypted_fields`
   then encrypts those rows. Off by default.
 - **Migrations:** the field deconstructs under its public path,
-  `django_common_utils.crypto.EncryptedTextField`, with its options; changing a
+  `django_common_kit.crypto.EncryptedTextField`, with its options; changing a
   `TextField` to it is an `AlterField` with no schema change, followed by
   `rotate_encrypted_fields --include-plaintext`.
 - **Fixtures:** `dumpdata` writes the token; `loaddata` would read it as a new
@@ -665,7 +666,7 @@ class ProviderAccountModel(BaseModel):
   it was or became. Two different tokens of the same plaintext are not a
   change. `HISTORY["EXCLUDE_FIELDS"]` cannot put it back in; naming it in
   `_history_exclude_fields` drops the `"***"` entry as well.
-- **Serialization.** `django_common_utils.crypto.SecretField` is the DRF field for
+- **Serialization.** `django_common_kit.crypto.SecretField` is the DRF field for
   it: write-only for the value, and on read returns `{"is_set": bool,
   "masked": "••••1234" | null}`. `SecretFieldsMixin`, for any `ModelSerializer`,
   maps every `EncryptedTextField` to it (through `serializer_field_mapping`), so
@@ -734,7 +735,7 @@ A project with no encrypted field and no keys gets no message.
   and 50.0.1.)
 - No new table, no migration. It is a minor bump (`0.10.0`) because it adds a
   public API, a settings key, an extra and system checks.
-- A package that stores secrets depends on `django-common-utils[crypto]` `>= 0.10`.
+- A package that stores secrets depends on `django-common-kit[crypto]` `>= 0.10`.
 
 ### §17.10 Adoption
 

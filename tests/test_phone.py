@@ -2,7 +2,7 @@
 
 from django.test import SimpleTestCase, override_settings
 
-from django_common_utils.phone import Phone
+from django_common_kit.phone import Phone
 
 try:
     import phonenumbers  # noqa: F401
@@ -38,12 +38,12 @@ class PhoneTests(SimpleTestCase):
     def test_blank_is_never_the_same_number(self):
         self.assertFalse(Phone.is_same_number("", ""))
 
-    @override_settings(DJANGO_COMMON_UTILS={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
+    @override_settings(DJANGO_COMMON_KIT={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
     def test_a_foreign_number_is_valid_but_not_serviceable(self):
         self.assertIsNotNone(Phone.normalise("+1 415 555 0132"))
         self.assertFalse(Phone.is_serviceable("+1 415 555 0132"))
 
-    @override_settings(DJANGO_COMMON_UTILS={"PHONE": {"SERVICEABLE_REGIONS": []}})
+    @override_settings(DJANGO_COMMON_KIT={"PHONE": {"SERVICEABLE_REGIONS": []}})
     def test_no_configured_regions_means_anywhere(self):
         self.assertTrue(Phone.is_serviceable("+1 415 555 0132"))
 
@@ -67,21 +67,21 @@ class PhoneTests(SimpleTestCase):
     def test_national_digits_of_blank_is_blank(self):
         self.assertEqual(Phone.national_digits(None), "")
 
-    @override_settings(DJANGO_COMMON_UTILS={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
+    @override_settings(DJANGO_COMMON_KIT={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
     def test_a_mobile_is_a_mobile(self):
         self.assertEqual(Phone.kind("0400 000 000"), Phone.MOBILE)
         self.assertTrue(Phone.is_mobile("0400 000 000"))
 
-    @override_settings(DJANGO_COMMON_UTILS={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
+    @override_settings(DJANGO_COMMON_KIT={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
     def test_a_landline_is_not_textable(self):
         self.assertEqual(Phone.kind("02 9374 4000"), Phone.LANDLINE)
         self.assertFalse(Phone.is_mobile("02 9374 4000"))
 
-    @override_settings(DJANGO_COMMON_UTILS={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
+    @override_settings(DJANGO_COMMON_KIT={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
     def test_a_toll_free_number_is_a_service_line(self):
         self.assertEqual(Phone.kind("1800 555 000"), Phone.SERVICE)
 
-    @override_settings(DJANGO_COMMON_UTILS={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
+    @override_settings(DJANGO_COMMON_KIT={"PHONE": {"SERVICEABLE_REGIONS": ["AU"]}})
     def test_an_unserviceable_number_has_no_kind(self):
         """Otherwise a caller is told 'mobile' about a number it cannot work."""
         self.assertIsNone(Phone.kind("+1 415 555 0132"))

@@ -1,12 +1,31 @@
 # Changelog
 
-All notable changes to `django-common-utils` are recorded here. The version headings
-must match `django_common_utils.__version__`; `tests/test_version.py` fails if they,
+All notable changes to `django-common-kit` are recorded here. The version headings
+must match `django_common_kit.__version__`; `tests/test_version.py` fails if they,
 or the README's install pins, drift from it.
 
 ## [Unreleased]
 
 Nothing yet.
+
+## [0.11.0] - 2026-09-27
+
+### Changed
+
+- **Renamed to `django-common-kit`**, because `django-common-utils` is taken on
+  PyPI by an unrelated package with the same import name. This is a breaking
+  change for anyone on 0.10.0:
+  - distribution `django-common-utils` is now `django-common-kit`;
+  - import package `django_common_utils` is now `django_common_kit`;
+  - settings dict `DJANGO_COMMON_UTILS` is now `DJANGO_COMMON_KIT`;
+  - app config `CommonUtilsConfig` is now `CommonKitConfig`.
+
+  The app label `common_control`, the migrations and every table name are
+  unchanged, so an existing database needs no migration.
+
+### Added
+
+- Published on PyPI, by trusted publishing from a GitHub Release.
 
 ## [0.10.0] - 2026-09-27
 
@@ -34,7 +53,7 @@ this entry summarises what it contains rather than how it got here.
   pagination, permission classes and throttles that produce it, with opt-in
   `code` and trace id on error bodies.
 - **Phone helpers** built on the optional `phonenumbers`.
-- **Encryption at rest** (§17): `django_common_utils.crypto`,
+- **Encryption at rest** (§17): `django_common_kit.crypto`,
   `EncryptedTextField`, the DRF `SecretField`, `rotate_encrypted_fields` and
   system checks `common_control.E001`–`E003` and `W001`.
 - **`adopt_tables`**: hands a project's existing tables to the package in the

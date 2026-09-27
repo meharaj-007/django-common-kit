@@ -4,7 +4,7 @@ import os
 import re
 import unittest
 
-import django_common_utils
+import django_common_kit
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -17,12 +17,12 @@ class VersionTests(unittest.TestCase):
         released = [h for h in headings if h != "Unreleased"]
         if not released:
             self.skipTest("nothing released yet; only [Unreleased] is present")
-        self.assertEqual(released[0], django_common_utils.__version__)
+        self.assertEqual(released[0], django_common_kit.__version__)
 
     def test_readme_pins_the_current_version(self):
         path = os.path.join(ROOT, "README.md")
         if not os.path.exists(path):
             self.skipTest("README.md not written yet")
-        pins = re.findall(r"django-common-utils(?:\.git)?@v([0-9.]+)", open(path).read())
+        pins = re.findall(r"django-common-kit(?:\.git)?(?:@v|==)([0-9.]+)", open(path).read())
         for pin in pins:
-            self.assertEqual(pin, django_common_utils.__version__)
+            self.assertEqual(pin, django_common_kit.__version__)

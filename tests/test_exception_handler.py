@@ -2,7 +2,7 @@
 
 from django.test import TestCase, override_settings
 
-from django_common_utils.constants.error_messages import ErrorMessage
+from django_common_kit.constants.error_messages import ErrorMessage
 
 
 @override_settings(ROOT_URLCONF="tests.urls")
@@ -20,7 +20,7 @@ class ExceptionHandlerTests(TestCase):
 
     def test_raise_exception_and_the_helper_agree_on_the_status(self):
         """The reason validation_error is 400 and not 422 (§5.1)."""
-        from django_common_utils.api.response import ApiResponse
+        from django_common_kit.api.response import ApiResponse
 
         raised = self.client.post(
             "/validated/", {"email": "nope"}, content_type="application/json"
@@ -29,7 +29,7 @@ class ExceptionHandlerTests(TestCase):
         self.assertEqual(raised, helper)
 
     def test_an_internal_exception_never_reaches_the_client(self):
-        with self.assertLogs("django_common_utils", level="ERROR"):
+        with self.assertLogs("django_common_kit", level="ERROR"):
             response = self.client.get("/boom/")
         self.assertEqual(response.status_code, 500)
         body = response.json()
@@ -39,7 +39,7 @@ class ExceptionHandlerTests(TestCase):
 
     def test_throttle_response_carries_retry_after_in_header_and_meta(self):
         self.assertEqual(self.client.get("/throttled/").status_code, 200)
-        with self.assertLogs("django_common_utils", level="WARNING"):
+        with self.assertLogs("django_common_kit", level="WARNING"):
             response = self.client.get("/throttled/")
         self.assertEqual(response.status_code, 429)
         # Retry-After only reaches a browser if CORS exposes it, so the wait is

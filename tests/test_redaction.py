@@ -4,7 +4,7 @@ import json
 
 from django.test import SimpleTestCase, override_settings
 
-from django_common_utils.tracking.redaction import (
+from django_common_kit.tracking.redaction import (
     MASK,
     redact_text,
     scrub_query_string,
@@ -44,7 +44,7 @@ class RedactionTests(SimpleTestCase):
     def test_scrub_url(self):
         self.assertEqual(scrub_url("https://x/y?a=1&sig=s"), f"https://x/y?a=1&sig={MASK}")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"REDACT_KEYS": ["tfn"]}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"REDACT_KEYS": ["tfn"]}})
     def test_project_keys_are_added_to_the_floor(self):
         out = json.loads(redact_text(json.dumps({"tfn": "123", "password": "x"}), "/"))
         self.assertEqual(out["tfn"], MASK)

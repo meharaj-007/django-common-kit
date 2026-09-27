@@ -7,14 +7,14 @@ from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from django_common_utils.api.rate_limiters import (
+from django_common_kit.api.rate_limiters import (
     api_rate_limit,
     django_http_rate_limit,
     enforce_cooldown,
     html_rate_limit,
     window_hit,
 )
-from django_common_utils.api.response import ApiResponse
+from django_common_kit.api.response import ApiResponse
 
 
 class WindowHitTests(TestCase):
@@ -55,7 +55,7 @@ class EnforceCooldownTests(TestCase):
         self.assertIsNone(enforce_cooldown(self._request("9.9.9.9"), key_prefix="q", limit=2, window=60, identity="c@d.com"))
         self.assertIsNone(enforce_cooldown(self._request("9.9.9.9"), key_prefix="q", limit=2, window=60, identity="e@f.com"))
 
-    @override_settings(DJANGO_COMMON_UTILS={"RATE_LIMIT": {"ENABLED": False}})
+    @override_settings(DJANGO_COMMON_KIT={"RATE_LIMIT": {"ENABLED": False}})
     def test_master_switch(self):
         for _ in range(10):
             self.assertIsNone(enforce_cooldown(self._request(), key_prefix="q", limit=1, window=60))
@@ -88,16 +88,16 @@ class CacheAliasTests(TestCase):
         for _ in range(5):
             self.assertEqual(window_hit("k", 1, 60), (True, 0))
 
-    @override_settings(DJANGO_COMMON_UTILS={"RATE_LIMIT": {"CACHE_ALIAS": "limits"}})
+    @override_settings(DJANGO_COMMON_KIT={"RATE_LIMIT": {"CACHE_ALIAS": "limits"}})
     def test_counts_in_the_named_cache(self):
         self.assertEqual(window_hit("k", 1, 60), (True, 0))
         self.assertFalse(window_hit("k", 1, 60)[0])
 
-    @override_settings(DJANGO_COMMON_UTILS={"RATE_LIMIT": {"CACHE_ALIAS": "limits"}})
+    @override_settings(DJANGO_COMMON_KIT={"RATE_LIMIT": {"CACHE_ALIAS": "limits"}})
     def test_drf_throttles_share_the_alias(self):
         from django.core.cache import caches
 
-        from django_common_utils.api.throttling import throttle_cache
+        from django_common_kit.api.throttling import throttle_cache
 
         self.assertIs(throttle_cache(), caches["limits"])
 
@@ -106,7 +106,7 @@ class CacheAliasTests(TestCase):
         """One settings dict (§4): the old top-level name is gone."""
         from django.core.cache import caches
 
-        from django_common_utils.api.throttling import throttle_cache
+        from django_common_kit.api.throttling import throttle_cache
 
         self.assertIs(throttle_cache(), caches["default"])
 

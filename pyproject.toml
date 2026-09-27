@@ -3,8 +3,8 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "django-common-utils"
-# Single source of truth is django_common_utils.__version__ (read statically by
+name = "django-common-kit"
+# Single source of truth is django_common_kit.__version__ (read statically by
 # setuptools, so nothing is imported at build time). Two hand-kept copies drift,
 # and here a drift is worse than untidy: consumers pin a git tag, so a tag whose
 # metadata disagrees with the package is a release nobody can identify.
@@ -21,7 +21,7 @@ authors = [{ name = "Meheraj" }]
 dependencies = ["Django>=4.2,<6.0", "djangorestframework>=3.14,<4.0"]
 
 [project.urls]
-Repository = "https://github.com/meharaj-007/django-common-utils"
+Repository = "https://github.com/meharaj-007/django-common-kit"
 
 [project.optional-dependencies]
 # S3 media storage. A project on local disk installs neither.
@@ -36,7 +36,7 @@ images = ["Pillow>=9.0,<13.0"]
 tracking = ["requests>=2.28,<3.0", "user-agents>=2.2,<3.0"]
 # Hands the tracking writers to a worker. Without it they run inline.
 celery = ["celery>=5.2,<6.0"]
-# Encrypting secrets at rest (django_common_utils.crypto). Without it the package
+# Encrypting secrets at rest (django_common_kit.crypto). Without it the package
 # imports, and every encrypt or decrypt raises naming this extra.
 crypto = ["cryptography>=42,<52"]
 all = [
@@ -51,10 +51,10 @@ all = [
 ]
 
 [tool.setuptools.dynamic]
-version = { attr = "django_common_utils.__version__" }
+version = { attr = "django_common_kit.__version__" }
 
 [tool.setuptools.packages.find]
-include = ["django_common_utils*"]
+include = ["django_common_kit*"]
 
 [tool.setuptools.package-data]
-django_common_utils = ["py.typed"]
+django_common_kit = ["py.typed"]

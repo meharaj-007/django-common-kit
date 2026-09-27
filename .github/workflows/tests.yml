@@ -102,7 +102,7 @@ jobs:
         # PGUSER must be set: tests/settings.py falls back to $USER, which is
         # `runner` here and is not a role the service has.
         env:
-          DJANGO_COMMON_UTILS_TEST_DB: postgres
+          DJANGO_COMMON_KIT_TEST_DB: postgres
           PGUSER: postgres
           PGPASSWORD: postgres
           PGHOST: localhost

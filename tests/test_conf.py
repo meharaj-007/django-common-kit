@@ -3,12 +3,12 @@
 from django.core.signals import setting_changed
 from django.test import SimpleTestCase, override_settings
 
-from django_common_utils.conf import app_settings
+from django_common_kit.conf import app_settings
 
 
 class SettingsCacheTests(SimpleTestCase):
     def test_override_settings_is_honoured(self):
-        with override_settings(DJANGO_COMMON_UTILS={"PAGINATION": {"PAGE_SIZE": 7}}):
+        with override_settings(DJANGO_COMMON_KIT={"PAGINATION": {"PAGE_SIZE": 7}}):
             self.assertEqual(app_settings.get("PAGINATION", "PAGE_SIZE"), 7)
         self.assertNotEqual(app_settings.get("PAGINATION", "PAGE_SIZE"), 7)
 
@@ -23,4 +23,4 @@ class SettingsCacheTests(SimpleTestCase):
         """
         keys = [entry[0] for entry in setting_changed.receivers]
         uids = [key[0] for key in keys]
-        self.assertIn("django_common_utils.conf", uids)
+        self.assertIn("django_common_kit.conf", uids)

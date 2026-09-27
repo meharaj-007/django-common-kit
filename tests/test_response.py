@@ -4,9 +4,9 @@ from django.test import RequestFactory, SimpleTestCase, override_settings
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from django_common_utils.api.response import ApiResponse
-from django_common_utils.request_context import set_current_request
-from django_common_utils.constants.error_messages import ErrorMessage
+from django_common_kit.api.response import ApiResponse
+from django_common_kit.request_context import set_current_request
+from django_common_kit.constants.error_messages import ErrorMessage
 
 
 class EnvelopeTests(SimpleTestCase):
@@ -82,7 +82,7 @@ class ValidationErrorTests(SimpleTestCase):
     def test_status_is_400_by_default(self):
         self.assertEqual(ApiResponse.validation_error({"a": ["b"]}).status_code, 400)
 
-    @override_settings(DJANGO_COMMON_UTILS={"RESPONSE": {"VALIDATION_ERROR_STATUS": 422}})
+    @override_settings(DJANGO_COMMON_KIT={"RESPONSE": {"VALIDATION_ERROR_STATUS": 422}})
     def test_status_is_configurable_for_a_repo_that_shipped_422(self):
         self.assertEqual(ApiResponse.validation_error({"a": ["b"]}).status_code, 422)
 
@@ -96,7 +96,7 @@ class ErrorCodeTests(SimpleTestCase):
         self.assertNotIn("code", body)
         self.assertNotIn("trace_id", body)
 
-    @override_settings(DJANGO_COMMON_UTILS={"RESPONSE": {"ERROR_CODES": True}})
+    @override_settings(DJANGO_COMMON_KIT={"RESPONSE": {"ERROR_CODES": True}})
     def test_defaults_per_status(self):
         cases = [
             (ApiResponse.bad_request(), "bad_request"),
@@ -111,24 +111,24 @@ class ErrorCodeTests(SimpleTestCase):
             with self.subTest(status=response.status_code):
                 self.assertEqual(response.data["code"], code)
 
-    @override_settings(DJANGO_COMMON_UTILS={"RESPONSE": {"ERROR_CODES": True}})
+    @override_settings(DJANGO_COMMON_KIT={"RESPONSE": {"ERROR_CODES": True}})
     def test_a_caller_names_its_own(self):
         body = ApiResponse.bad_request(code="organization_required").data
         self.assertEqual(body["code"], "organization_required")
         self.assertEqual(ApiResponse.validation_error({"a": ["b"]}, code="x").data["code"], "x")
 
-    @override_settings(DJANGO_COMMON_UTILS={"RESPONSE": {"ERROR_CODES": True}})
+    @override_settings(DJANGO_COMMON_KIT={"RESPONSE": {"ERROR_CODES": True}})
     def test_never_on_a_success(self):
         self.assertNotIn("code", ApiResponse.success().data)
 
-    @override_settings(DJANGO_COMMON_UTILS={"RESPONSE": {
+    @override_settings(DJANGO_COMMON_KIT={"RESPONSE": {
         "ERROR_CODES": True, "ERROR_CODE_BY_STATUS": {409: "conflict"},
     }})
     def test_project_map_extends_the_defaults(self):
         self.assertEqual(ApiResponse.error(status_code=409).data["code"], "conflict")
         self.assertEqual(ApiResponse.not_found().data["code"], "not_found")
 
-    @override_settings(DJANGO_COMMON_UTILS={"RESPONSE": {"ERROR_TRACE_ID_KEY": "trace_id"}})
+    @override_settings(DJANGO_COMMON_KIT={"RESPONSE": {"ERROR_TRACE_ID_KEY": "trace_id"}})
     def test_trace_id_on_errors_only_and_regardless_of_debug(self):
         request = RequestFactory().get("/")
         request.correlation_id = "9f2c"

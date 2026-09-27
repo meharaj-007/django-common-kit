@@ -7,9 +7,9 @@ from django.contrib.auth import get_user_model
 from django.db.migrations.state import ProjectState
 from django.test import RequestFactory, TestCase, override_settings
 
-from django_common_utils.history import HistoryMixin, get_model_history, make_json_safe
-from django_common_utils.models import ModelHistory
-from django_common_utils.request_context import set_current_request
+from django_common_kit.history import HistoryMixin, get_model_history, make_json_safe
+from django_common_kit.models import ModelHistory
+from django_common_kit.request_context import set_current_request
 from tests.testapp.models import Gadget, Telemetry, Widget
 
 User = get_user_model()
@@ -67,7 +67,7 @@ class HistoryRecordingTests(TestCase):
         """Reading content_object would load the related row on every save."""
         from django.contrib.contenttypes.models import ContentType
 
-        from django_common_utils.models import StatusTransitionModel
+        from django_common_kit.models import StatusTransitionModel
 
         widget = Widget.objects.create(name="lamp")
         transition = StatusTransitionModel.objects.create(
@@ -97,12 +97,12 @@ class HistoryRecordingTests(TestCase):
         Widget.objects.create(name="lamp")
         self.assertEqual(ModelHistory.objects.count(), 1)
 
-    @override_settings(DJANGO_COMMON_UTILS={"HISTORY": {"ENABLED": False}})
+    @override_settings(DJANGO_COMMON_KIT={"HISTORY": {"ENABLED": False}})
     def test_can_be_switched_off_globally(self):
         Widget.objects.create(name="lamp")
         self.assertEqual(ModelHistory.objects.count(), 0)
 
-    @override_settings(DJANGO_COMMON_UTILS={"HISTORY": {"MAX_VALUE_LENGTH": 10}})
+    @override_settings(DJANGO_COMMON_KIT={"HISTORY": {"MAX_VALUE_LENGTH": 10}})
     def test_long_values_are_truncated(self):
         widget = Widget.objects.create(name="lamp", notes="x" * 100)
         row = get_model_history(widget).first()

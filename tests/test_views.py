@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.permissions import AllowAny
 from rest_framework.test import APIRequestFactory
 
-from django_common_utils.api.views import CustomCreateAPIView
+from django_common_kit.api.views import CustomCreateAPIView
 
 
 class _EchoSerializer(serializers.Serializer):
@@ -36,13 +36,13 @@ class LoggedCreateTests(SimpleTestCase):
         ))
 
     def test_body_is_not_logged_at_info(self):
-        with self.assertLogs("django_common_utils.api.views", level="INFO") as logs:
-            logging.getLogger("django_common_utils.api.views").info("sentinel")
+        with self.assertLogs("django_common_kit.api.views", level="INFO") as logs:
+            logging.getLogger("django_common_kit.api.views").info("sentinel")
             self.assertEqual(self._post().status_code, 201)
-        self.assertEqual(logs.output, ["INFO:django_common_utils.api.views:sentinel"])
+        self.assertEqual(logs.output, ["INFO:django_common_kit.api.views:sentinel"])
 
     def test_debug_line_is_redacted(self):
-        with self.assertLogs("django_common_utils.api.views", level="DEBUG") as logs:
+        with self.assertLogs("django_common_kit.api.views", level="DEBUG") as logs:
             self._post()
         line = "\n".join(logs.output)
         self.assertIn("Ada", line)

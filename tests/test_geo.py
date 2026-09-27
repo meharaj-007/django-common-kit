@@ -11,8 +11,8 @@ from unittest import mock
 from django.core.cache import cache
 from django.test import SimpleTestCase, override_settings
 
-from django_common_utils.tracking import writers
-from django_common_utils.tracking.writers import GEO_BACKOFF_KEY, GEO_MISS_CACHE_TIMEOUT, resolve_geo
+from django_common_kit.tracking import writers
+from django_common_kit.tracking.writers import GEO_BACKOFF_KEY, GEO_MISS_CACHE_TIMEOUT, resolve_geo
 
 IP = "1.1.1.1"
 OTHER_IP = "8.8.8.8"
@@ -42,7 +42,7 @@ def _response(status=200, body=None, headers=None):
     return response
 
 
-@override_settings(DJANGO_COMMON_UTILS=GEO)
+@override_settings(DJANGO_COMMON_KIT=GEO)
 class ResolveGeoTests(SimpleTestCase):
     def setUp(self):
         cache.clear()
@@ -118,7 +118,7 @@ class ResolveGeoTests(SimpleTestCase):
             self.assertEqual(resolve_geo(ip), {}, ip)
         self.get.assert_not_called()
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"GEO_LOOKUP_URL": ""}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"GEO_LOOKUP_URL": ""}})
     def test_an_empty_url_makes_no_lookup(self):
         self.assertEqual(resolve_geo(IP), {})
         self.get.assert_not_called()

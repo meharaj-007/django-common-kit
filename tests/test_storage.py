@@ -3,7 +3,7 @@
 from django.core.files.storage import FileSystemStorage
 from django.test import SimpleTestCase, override_settings
 
-from django_common_utils.storage import (
+from django_common_kit.storage import (
     MediaStorage,
     OWNERLESS_ROOT,
     safe_basename,
@@ -35,16 +35,16 @@ class MediaStorageTests(SimpleTestCase):
 
     def test_deconstruct_bakes_nothing_into_a_migration(self):
         path, args, kwargs = MediaStorage().deconstruct()
-        self.assertEqual(path, "django_common_utils.storage.MediaStorage")
+        self.assertEqual(path, "django_common_kit.storage.MediaStorage")
         self.assertEqual((args, kwargs), ([], {}))
 
-    @override_settings(DJANGO_COMMON_UTILS={"STORAGE": {"TYPE": "s3"}})
+    @override_settings(DJANGO_COMMON_KIT={"STORAGE": {"TYPE": "s3"}})
     def test_s3_without_the_extra_names_the_extra(self):
         storage = MediaStorage()
         try:
             storage.backend
         except ImportError as exc:
-            self.assertIn("django-common-utils[s3]", str(exc))
+            self.assertIn("django-common-kit[s3]", str(exc))
         else:
             self.skipTest("django-storages is installed; nothing to assert")
 

@@ -7,15 +7,15 @@ from django.http import HttpResponse, JsonResponse
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
-from django_common_utils.models import BlockedIPModel, IPTrackingModel, RequestLog
-from django_common_utils.tracking.middleware import (
+from django_common_kit.models import BlockedIPModel, IPTrackingModel, RequestLog
+from django_common_kit.tracking.middleware import (
     IPBlockerMiddleware,
     IPTrackingMiddleware,
     RequestLogMiddleware,
 )
-from django_common_utils.tracking.patterns import is_excluded_path, matching_block_pattern
-from django_common_utils.tracking.purge import purge_table
-from django_common_utils.tracking.redaction import MASK
+from django_common_kit.tracking.patterns import is_excluded_path, matching_block_pattern
+from django_common_kit.tracking.purge import purge_table
+from django_common_kit.tracking.redaction import MASK
 
 NO_GEO = {"TRACKING": {"GEO_LOOKUP_URL": ""}}
 
@@ -38,12 +38,12 @@ class PatternTests(TestCase):
         self.assertIsNone(matching_block_pattern("/api/auth/verify/AbCs3DeFg/"))
         self.assertIsNone(matching_block_pattern("/areas-we-serve/docker/"))
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"IP_BLOCK_EXEMPT_PATHS": [r"^/api/auth/verify-email/[^/]*/?$"]}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"IP_BLOCK_EXEMPT_PATHS": [r"^/api/auth/verify-email/[^/]*/?$"]}})
     def test_exempt_paths_are_never_inspected(self):
         self.assertIsNone(matching_block_pattern("/api/auth/verify-email/.env/"))
 
 
-@override_settings(DJANGO_COMMON_UTILS=NO_GEO)
+@override_settings(DJANGO_COMMON_KIT=NO_GEO)
 class RequestLogMiddlewareTests(TestCase):
     def _run(self, request, view=ok):
         middleware = RequestLogMiddleware(view)
@@ -78,14 +78,14 @@ class RequestLogMiddlewareTests(TestCase):
         self._run(request, pdf)
         self.assertIsNone(RequestLog.objects.get().response)
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"REQUEST_LOG_ENABLED": False, "GEO_LOOKUP_URL": ""}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"REQUEST_LOG_ENABLED": False, "GEO_LOOKUP_URL": ""}})
     def test_can_be_disabled(self):
         request = RequestFactory().get("/x/")
         self._run(request)
         self.assertEqual(RequestLog.objects.count(), 0)
 
 
-@override_settings(DJANGO_COMMON_UTILS=NO_GEO)
+@override_settings(DJANGO_COMMON_KIT=NO_GEO)
 class IPTrackingMiddlewareTests(TestCase):
     def test_writes_a_visit_row_without_a_network_call(self):
         request = RequestFactory().get("/pricing/", REMOTE_ADDR="8.8.8.8", HTTP_USER_AGENT="ua")
@@ -98,7 +98,7 @@ class IPTrackingMiddlewareTests(TestCase):
         # No geo provider configured: columns blank, no exception.
         self.assertEqual(row.country, "")
 
-    @override_settings(DJANGO_COMMON_UTILS={"TRACKING": {"GEO_LOOKUP_URL": "", "CAPTURE_ATTRIBUTION": True}})
+    @override_settings(DJANGO_COMMON_KIT={"TRACKING": {"GEO_LOOKUP_URL": "", "CAPTURE_ATTRIBUTION": True}})
     def test_attribution_columns_when_enabled(self):
         request = RequestFactory().get("/?utm_source=google&sig=x", REMOTE_ADDR="8.8.8.8", HTTP_REFERER="https://g/")
         request.user = None
@@ -183,7 +183,7 @@ class PurgeTests(TestCase):
 
 class MetricsTests(TestCase):
     def test_labelled_bump_also_bumps_the_rollup(self):
-        from django_common_utils.tracking import metrics
+        from django_common_kit.tracking import metrics
 
         cache.clear()
         metrics.increment(metrics.TRACKING_INLINE_FALLBACK, "ip_tracking")
