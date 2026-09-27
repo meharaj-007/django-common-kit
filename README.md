@@ -1,5 +1,7 @@
 # django-common-utils
 
+[![tests](https://github.com/meharaj-007/django-common-utils/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/meharaj-007/django-common-utils/actions/workflows/tests.yml)
+
 The foundation a Django REST backend starts from: a UUID `BaseModel`, a
 change-history trail, typed system parameters with a cache, request and IP
 tracking, file attachments, short links, one REST response envelope with the
